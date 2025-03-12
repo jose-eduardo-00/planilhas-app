@@ -14,6 +14,7 @@ model User {
   password String 
 
   Code Code[]
+  Auth Auth[]
 }
 
 model Code {
@@ -24,3 +25,13 @@ model Code {
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   }
+
+  model Auth {
+  id     String    @id @default(uuid())
+  userId String    @unique
+  token  String    @db.Text
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+
+}
