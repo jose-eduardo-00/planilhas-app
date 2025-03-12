@@ -16,5 +16,11 @@ export const MESSAGES = {
   AUTH: {
     PASSWORD_RESET_SENT: "Código de recuperação enviado com sucesso.",
     INVALID_CREDENTIALS: "Credenciais inválidas.",
+    TOKEN_CREATED: "Token de autenticação criado com sucesso.",
+    TOKEN_INVALID: "Token de autenticação inválido ou expirado.",
+    TOKEN_DELETED: "Token de autenticação removido com sucesso.",
+    LOGIN_SUCCESS: "Login realizado com sucesso.",
+    LOGOUT_SUCCESS: "Logout realizado com sucesso.",
+    TOKEN_NOT_FOUND: "Token de autenticação não encontrado.", 
   },
 };
