@@ -15,6 +15,7 @@ model User {
 
   Code Code[]
   Auth Auth[]
+  Planilha Planilha[]
 }
 
 model Code {
@@ -32,6 +33,16 @@ model Code {
   token  String    @db.Text
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
+model Planilha {
+  id        String   @id @default(uuid())
+  nome      String
+  tipo      String  
+  data      DateTime
+  valor     Decimal
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
 }
