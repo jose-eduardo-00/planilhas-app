@@ -34,6 +34,8 @@ export const createUser: RequestHandler = async (
         renda_mensal: renda_mensal
           ? parseFloat(parseFloat(renda_mensal).toFixed(2))
           : 0.0,
+        salario: 0.0,
+        outras_fontes: 0.0,
       },
     });
 
@@ -49,6 +51,40 @@ export const createUser: RequestHandler = async (
       error: MESSAGES.USER.ERROR,
       details: error instanceof Error ? error.message : error,
     });
+  }
+};
+
+export const updateData: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { salario, outras_fontes } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        salario: salario
+          ? parseFloat(parseFloat(salario).toFixed(2))
+          : undefined,
+        outras_fontes: outras_fontes
+          ? parseFloat(parseFloat(outras_fontes).toFixed(2))
+          : undefined,
+      },
+      select: {
+        id: true,
+        salario: true,
+        outras_fontes: true,
+      },
+    });
+
+    res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
+  } catch (error) {
+    console.error("Erro ao atualizar salário e outras fontes:", error);
+    res
+      .status(500)
+      .json({
+        error: MESSAGES.USER.ERROR,
+        details: error instanceof Error ? error.message : error,
+      });
   }
 };
 
@@ -131,12 +167,10 @@ export const updateUser: RequestHandler = async (req, res) => {
     res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
-    res
-      .status(500)
-      .json({
-        error: MESSAGES.USER.ERROR,
-        details: error instanceof Error ? error.message : error,
-      });
+    res.status(500).json({
+      error: MESSAGES.USER.ERROR,
+      details: error instanceof Error ? error.message : error,
+    });
   }
 };
 

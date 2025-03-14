@@ -6,6 +6,7 @@ import {
   updateUser,
   deleteUser,
   resendPassword,
+  updateData,
 } from '../../controllers/user/user.controller';
 import { uploadAvatar } from '../../helpers/img-uploader';
 
@@ -15,6 +16,7 @@ router.post("/register", uploadAvatar.single("avatar"), createUser);
 router.get("/", getUsers); 
 router.get("/:id", getUserById); 
 router.put("/edit/:id", uploadAvatar.single("avatar"), updateUser);
+router.put("/update-data/:id", updateData);
 router.delete("/delete/:id", deleteUser);
 router.post("/resend-password", resendPassword); 
 
