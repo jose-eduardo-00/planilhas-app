@@ -17,9 +17,9 @@ export const loginUser: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const { email, password } = req.body;
+    const { email, senha } = req.body;
 
-    if (!email || !password) {
+    if (!email || !senha) {
       res.status(400).json({ error: MESSAGES.ERROR.INVALID_REQUEST });
       return;
     }
@@ -31,7 +31,7 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await bcrypt.compare(senha, user.senha);
 
     if (!isPasswordValid) {
       res.status(401).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
@@ -46,7 +46,7 @@ export const loginUser: RequestHandler = async (
       create: { userId: user.id, token },
     });
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { senha: _, ...userWithoutPassword } = user;
 
     res.status(200).json({
       message: MESSAGES.AUTH.LOGIN_SUCCESS,

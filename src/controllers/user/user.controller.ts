@@ -12,7 +12,7 @@ export const createUser: RequestHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, senha, avatar, renda_mensal } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -20,13 +20,19 @@ export const createUser: RequestHandler = async (
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(senha, 10);
 
     const newUser = await prisma.user.create({
-      data: { name, email, password: hashedPassword },
+      data: {
+        name,
+        email,
+        senha: hashedPassword,
+        avatar: avatar || "",
+        renda_mensal: renda_mensal ? parseFloat(renda_mensal.toFixed(2)) : 0.0,
+      },
     });
 
-    const { password: _, ...userWithoutPassword } = newUser;
+    const { senha: _, ...userWithoutPassword } = newUser;
 
     res.status(201).json({
       message: MESSAGES.USER.CREATED,
@@ -45,6 +51,8 @@ export const getUsers: RequestHandler = async (_req, res) => {
         id: true,
         name: true,
         email: true,
+        avatar: true,
+        renda_mensal: true,
       },
     });
 
@@ -60,10 +68,7 @@ export const getUsers: RequestHandler = async (_req, res) => {
   }
 };
 
-export const getUserById = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const getUserById: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -73,6 +78,8 @@ export const getUserById = async (
         id: true,
         name: true,
         email: true,
+        avatar: true,
+        renda_mensal: true,
       },
     });
 
@@ -81,52 +88,41 @@ export const getUserById = async (
       return;
     }
 
-    res.status(200).json({
-      message: MESSAGES.USER.FETCHED,
-      user,
-    });
+    res.status(200).json({ message: MESSAGES.USER.FETCHED, user });
   } catch (error) {
-    res.status(500).json({
-      error: MESSAGES.USER.ERROR,
-      details: error,
-    });
+    res.status(500).json({ error: MESSAGES.USER.ERROR, details: error });
   }
 };
 
-export const updateUser: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const updateUser: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email } = req.body;
+    const { name, email, avatar, renda_mensal } = req.body;
 
     const updatedUser = await prisma.user.update({
       where: { id },
-      data: { name, email },
+      data: {
+        name,
+        email,
+        avatar,
+        renda_mensal: renda_mensal ? parseFloat(renda_mensal.toFixed(2)) : undefined,
+      },
       select: {
         id: true,
         name: true,
         email: true,
+        avatar: true,
+        renda_mensal: true,
       },
     });
 
-    res.status(200).json({
-      message: MESSAGES.USER.UPDATED,
-      user: updatedUser,
-    });
+    res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
   } catch (error) {
-    res.status(500).json({
-      error: MESSAGES.USER.ERROR,
-      details: error,
-    });
+    res.status(500).json({ error: MESSAGES.USER.ERROR, details: error });
   }
 };
 
-export const deleteUser = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const deleteUser: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -145,10 +141,7 @@ export const deleteUser = async (
   }
 };
 
-export const resendPassword: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+export const resendPassword: RequestHandler = async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -170,8 +163,6 @@ export const resendPassword: RequestHandler = async (
     res.status(200).json({ message: MESSAGES.AUTH.PASSWORD_RESET_SENT });
   } catch (error) {
     console.error("Erro no resendPassword:", error);
-    res
-      .status(500)
-      .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
+    res.status(500).json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
   }
 };
