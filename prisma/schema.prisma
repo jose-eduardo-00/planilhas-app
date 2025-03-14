@@ -40,7 +40,7 @@ model Planilha {
   nome      String
   tipo      String  
   data      DateTime
-  valor     Decimal
+  valor     Decimal  @db.Decimal(10, 2)
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
