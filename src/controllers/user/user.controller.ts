@@ -12,7 +12,7 @@ export const createUser: RequestHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, email, senha, avatar, renda_mensal } = req.body;
+    const { name, email, senha, renda_mensal } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -20,15 +20,20 @@ export const createUser: RequestHandler = async (
       return;
     }
 
+    console.log("Arquivo recebido:", req.file);
+
     const hashedPassword = await bcrypt.hash(senha, 10);
+    const avatarPath = req.file ? `avatar/${req.file.filename}` : "";
 
     const newUser = await prisma.user.create({
       data: {
         name,
         email,
         senha: hashedPassword,
-        avatar: avatar || "",
-        renda_mensal: renda_mensal ? parseFloat(renda_mensal.toFixed(2)) : 0.0,
+        avatar: avatarPath,
+        renda_mensal: renda_mensal
+          ? parseFloat(parseFloat(renda_mensal).toFixed(2))
+          : 0.0,
       },
     });
 
@@ -40,7 +45,10 @@ export const createUser: RequestHandler = async (
     });
   } catch (error) {
     console.error("Erro ao registrar usuário:", error);
-    res.status(500).json({ error: MESSAGES.USER.ERROR, details: error });
+    res.status(500).json({
+      error: MESSAGES.USER.ERROR,
+      details: error instanceof Error ? error.message : error,
+    });
   }
 };
 
@@ -97,15 +105,19 @@ export const getUserById: RequestHandler = async (req, res) => {
 export const updateUser: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, avatar, renda_mensal } = req.body;
+    const { name, email, renda_mensal } = req.body;
+
+    const avatarPath = req.file ? `avatar/${req.file.filename}` : undefined;
 
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         name,
         email,
-        avatar,
-        renda_mensal: renda_mensal ? parseFloat(renda_mensal.toFixed(2)) : undefined,
+        avatar: avatarPath || undefined,
+        renda_mensal: renda_mensal
+          ? parseFloat(parseFloat(renda_mensal).toFixed(2))
+          : undefined,
       },
       select: {
         id: true,
@@ -118,7 +130,13 @@ export const updateUser: RequestHandler = async (req, res) => {
 
     res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
   } catch (error) {
-    res.status(500).json({ error: MESSAGES.USER.ERROR, details: error });
+    console.error("Erro ao atualizar usuário:", error);
+    res
+      .status(500)
+      .json({
+        error: MESSAGES.USER.ERROR,
+        details: error instanceof Error ? error.message : error,
+      });
   }
 };
 
@@ -163,6 +181,8 @@ export const resendPassword: RequestHandler = async (req, res) => {
     res.status(200).json({ message: MESSAGES.AUTH.PASSWORD_RESET_SENT });
   } catch (error) {
     console.error("Erro no resendPassword:", error);
-    res.status(500).json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
+    res
+      .status(500)
+      .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
   }
 };
