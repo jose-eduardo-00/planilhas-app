@@ -94,3 +94,52 @@ export const logoutUser: RequestHandler = async (
       .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
   }
 };
+
+export const verifyCode: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { code } = req.body;
+    const { id } = req.params;
+
+    if (!code) {
+      res.status(400).json({ error: MESSAGES.ERROR.INVALID_REQUEST });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      res.status(401).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: { verify: true },
+    });
+
+    const existingCode = await prisma.code.findFirst({
+      where: { code, userId: id },
+    });
+
+    if (!existingCode) {
+      res.status(400).json({ error: "Código inválido ou expirado." });
+      return;
+    }
+
+    await prisma.code.delete({
+      where: { id: existingCode.id },
+    });
+
+    res.status(200).json({
+      message: MESSAGES.AUTH.LOGIN_SUCCESS,
+    });
+  } catch (error) {
+    console.error("Erro no login:", error);
+    res
+      .status(500)
+      .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
+  }
+};

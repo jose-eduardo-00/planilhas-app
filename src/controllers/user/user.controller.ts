@@ -4,6 +4,8 @@ import { generateCode } from "../../services/code/code.service";
 import { sendResetEmail } from "../../services/email/email.service";
 import bcrypt from "bcryptjs";
 import { MESSAGES } from "../../utils/messages";
+import { enviarEmail } from "../../helpers/emailHelper";
+import { generateVerificationCode } from "../../helpers/generateCodeHelper";
 
 const prisma = new PrismaClient();
 
@@ -36,8 +38,23 @@ export const createUser: RequestHandler = async (
           : 0.0,
         salario: 0.0,
         outras_fontes: 0.0,
+        verify: false,
       },
     });
+
+    const verificationCode = generateVerificationCode();
+
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    const newCode = await prisma.code.create({
+      data: {
+        userId: newUser.id,
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+    });
+
+    await enviarEmail(email, "Código de Confirmação", name, newCode.code);
 
     const { senha: _, ...userWithoutPassword } = newUser;
 
@@ -79,12 +96,10 @@ export const updateData: RequestHandler = async (req, res) => {
     res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
   } catch (error) {
     console.error("Erro ao atualizar salário e outras fontes:", error);
-    res
-      .status(500)
-      .json({
-        error: MESSAGES.USER.ERROR,
-        details: error instanceof Error ? error.message : error,
-      });
+    res.status(500).json({
+      error: MESSAGES.USER.ERROR,
+      details: error instanceof Error ? error.message : error,
+    });
   }
 };
 

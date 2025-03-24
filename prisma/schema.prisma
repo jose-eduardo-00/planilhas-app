@@ -8,46 +8,46 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name  String
-  email String @unique
-  senha String 
-  avatar String
-  renda_mensal Decimal @db.Decimal(10, 2)
-  salario Decimal @db.Decimal(10, 2)
+  id            String  @id @default(uuid())
+  name          String
+  email         String  @unique
+  senha         String
+  verify        Boolean @default(false)
+  avatar        String
+  renda_mensal  Decimal @db.Decimal(10, 2)
+  salario       Decimal @db.Decimal(10, 2)
   outras_fontes Decimal @db.Decimal(10, 2)
 
-
-  Code Code[]
-  Auth Auth[]
+  Code     Code[]
+  Auth     Auth[]
   Planilha Planilha[]
 }
 
 model Code {
   id        String   @id @default(uuid())
-  userId    String      @unique
+  userId    String   @unique
   code      String
   expiresAt DateTime
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  }
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  model Auth {
-  id     String    @id @default(uuid())
-  userId String    @unique
-  token  String    @db.Text
+model Auth {
+  id     String @id @default(uuid())
+  userId String @unique
+  token  String @db.Text
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Planilha {
-  id        String   @id @default(uuid())
-  nome      String
-  tipo      String  
-  data      DateTime
-  valor     Decimal  @db.Decimal(10, 2)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String   @id @default(uuid())
+  nome   String
+  tipo   String
+  data   DateTime
+  valor  Decimal  @db.Decimal(10, 2)
+  userId String
+  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

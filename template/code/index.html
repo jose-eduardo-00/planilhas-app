@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conta</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+        * {
+            box-sizing: border-box;
+            text-decoration: none;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            margin: 0 auto;
+            display: block;
+            font-family: "Inter" !important;
+            font-optical-sizing: auto;
+            font-style: normal;
+            font-variation-settings:
+                "slnt" 0;
+
+            background: #F7F8FA;
+
+        }
+
+        .container {
+            display: block;
+            margin: 0 auto;
+            padding: 40px 0px 40px 0px;
+            bottom: 0 !important;
+            width: 648px;
+            height: 100%;
+            background: #F7F8FA;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 10px 10px 0 0;
+        }
+
+        .content {
+            padding: 20px;
+            text-align: center;
+        }
+
+        .code {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333333;
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            display: inline-block;
+            margin-top: 20px;
+            border-radius: 5px;
+            background-color: #f1f1f1;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+            color: #777777;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- <img class="" src="" alt=""> -->
+
+        <div class="container">
+            <div class="header">
+                <h1>🔑 Código de Confirmação</h1>
+            </div>
+
+            <div class="content">
+                <p>Olá <strong>{{nome}}</strong>,</p>
+                <p>Você solicitou um código de confirmação. Para continuar, insira o seguinte código:</p>
+                <div class="code">{{codigo_confirmacao}}</div>
+                <!-- <p>Este código é válido por 10 minutos.</p> -->
+            </div>
+
+            <div class="footer">
+                <p>&copy; 2024 - Todos os direitos reservados.</p>
+                <p>Se você não solicitou esse código, desconsidere este e-mail.</p>
+            </div>
+        </div>
+
+        <footer>
+        </footer>
+    </div>
+
+</body>
+
+</html>
