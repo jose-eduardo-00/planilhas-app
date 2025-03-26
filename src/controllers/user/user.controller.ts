@@ -14,7 +14,7 @@ export const createUser: RequestHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, email, senha, renda_mensal } = req.body;
+    const { name, email, senha, renda_mensal, expoToken } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -39,6 +39,7 @@ export const createUser: RequestHandler = async (
         salario: 0.0,
         outras_fontes: 0.0,
         verify: false,
+        expoToken: expoToken,
       },
     });
 
@@ -224,14 +225,55 @@ export const resendPassword: RequestHandler = async (req, res) => {
       return;
     }
 
-    const code = await generateCode(user.id);
-    await sendResetEmail(user.email, code);
+    // const code = await generateCode(user.id);
+    // await sendResetEmail(user.email, code);
+    const verificationCode = generateVerificationCode();
 
-    res.status(200).json({ message: MESSAGES.AUTH.PASSWORD_RESET_SENT });
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    const newCode = await prisma.code.create({
+      data: {
+        userId: user.id,
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+    });
+
+    await enviarEmail(email, "Código de Confirmação", user.name, newCode.code);
+
+    res.status(200).json({ message: MESSAGES.AUTH.PASSWORD_RESET_SENT, user });
   } catch (error) {
     console.error("Erro no resendPassword:", error);
     res
       .status(500)
       .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
+  }
+};
+
+export const updatePassword: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { senha } = req.body;
+
+    const hashedPassword = await bcrypt.hash(senha, 10);
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        senha: hashedPassword,
+      },
+      select: {
+        id: true,
+        senha: true,
+      },
+    });
+
+    res.status(200).json({ message: MESSAGES.USER.RESET_PASSWORD });
+  } catch (error) {
+    console.error("Erro ao atualizar salário e outras fontes:", error);
+    res.status(500).json({
+      error: MESSAGES.USER.ERROR,
+      details: error instanceof Error ? error.message : error,
+    });
   }
 };

@@ -17,6 +17,7 @@ model User {
   renda_mensal  Decimal @db.Decimal(10, 2)
   salario       Decimal @db.Decimal(10, 2)
   outras_fontes Decimal @db.Decimal(10, 2)
+  expoToken     String?
 
   Code     Code[]
   Auth     Auth[]

@@ -7,6 +7,7 @@ export const MESSAGES = {
     EMAIL_EXISTS: "E-mail já cadastrado.",
     ERROR: "Erro ao processar a solicitação.",
     FETCHED: "Usuário(s) buscado(s) com sucesso.",
+    RESET_PASSWORD: "Senha atualizada com sucesso.",
   },
   ERROR: {
     INTERNAL_SERVER: "Erro interno do servidor.",
@@ -21,6 +22,6 @@ export const MESSAGES = {
     TOKEN_DELETED: "Token de autenticação removido com sucesso.",
     LOGIN_SUCCESS: "Login realizado com sucesso.",
     LOGOUT_SUCCESS: "Logout realizado com sucesso.",
-    TOKEN_NOT_FOUND: "Token de autenticação não encontrado.", 
+    TOKEN_NOT_FOUND: "Token de autenticação não encontrado.",
   },
 };
