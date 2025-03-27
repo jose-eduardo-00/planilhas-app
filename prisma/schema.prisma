@@ -49,6 +49,16 @@ model Planilha {
   valor  Decimal  @db.Decimal(10, 2)
   userId String
   user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  linhas LinhaPlanilha[]
 
   @@index([userId])
+}
+
+model LinhaPlanilha {
+  id         String   @id @default(uuid())
+  descricao  String
+  planilhaId String
+  planilha   Planilha @relation(fields: [planilhaId], references: [id], onDelete: Cascade)
+
+  @@index([planilhaId])
 }

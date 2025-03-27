@@ -3,19 +3,37 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const createPlanilha: RequestHandler = async (req: Request, res: Response): Promise<void> => {
+export const createPlanilha: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
-    const { nome, tipo, data, valor, userId } = req.body;
+    const { nome, tipo, data, userId, linhas } = req.body;
 
-    if (!nome || !tipo || !data || !valor || !userId) {
-      res
-        .status(400)
-        .json({ error: "Todos os campos são obrigatórios." });
+    if (!nome || !tipo || !data || !userId || !Array.isArray(linhas)) {
+      res.status(400).json({
+        error:
+          "Todos os campos são obrigatórios, incluindo 'linhas' como um array.",
+      });
       return;
     }
 
     const novaPlanilha = await prisma.planilha.create({
-      data: { nome, tipo, data: new Date(data), valor, userId },
+      data: {
+        nome,
+        tipo,
+        data: new Date(data),
+        userId,
+        valor: 0,
+        linhas: {
+          create: linhas.map((linha: { descricao: string }) => ({
+            descricao: linha.descricao,
+          })),
+        },
+      },
+      include: {
+        linhas: true,
+      },
     });
 
     res.status(201).json(novaPlanilha);
@@ -31,6 +49,7 @@ export const getPlanilhasByUser = async (req: Request, res: Response) => {
 
     const planilhas = await prisma.planilha.findMany({
       where: { userId },
+      include: { linhas: true },
     });
 
     res.status(200).json(planilhas);
@@ -40,14 +59,65 @@ export const getPlanilhasByUser = async (req: Request, res: Response) => {
   }
 };
 
-export const updatePlanilha = async (req: Request, res: Response) => {
+export const addLinhaToPlanilha: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { planilhaId } = req.params;
+    const { descricao } = req.body;
+
+    if (!descricao) {
+      res.status(400).json({ error: "O campo 'descricao' é obrigatório." });
+      return;
+    }
+
+    const novaLinha = await prisma.linhaPlanilha.create({
+      data: {
+        descricao,
+        planilhaId,
+      },
+    });
+
+    res.status(201).json(novaLinha);
+  } catch (error) {
+    console.error("Erro ao adicionar linha:", error);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+};
+
+export const updatePlanilha: RequestHandler = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   try {
     const { id } = req.params;
-    const { nome, tipo, data, valor } = req.body;
+    const { nome, tipo, data, linhas } = req.body;
+
+    if (!nome || !tipo || !data || !Array.isArray(linhas)) {
+      res.status(400).json({
+        error:
+          "Todos os campos são obrigatórios, incluindo 'linhas' como um array.",
+      });
+      return;
+    }
 
     const planilhaAtualizada = await prisma.planilha.update({
       where: { id },
-      data: { nome, tipo, data: new Date(data), valor },
+      data: {
+        nome,
+        tipo,
+        data: new Date(data),
+        linhas: {
+          deleteMany: {},
+          create: linhas.map((linha: { descricao: string }) => ({
+            descricao: linha.descricao,
+          })),
+        },
+      },
+      include: {
+        linhas: true,
+      },
     });
 
     res.status(200).json(planilhaAtualizada);
