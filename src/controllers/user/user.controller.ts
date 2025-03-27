@@ -87,11 +87,6 @@ export const updateData: RequestHandler = async (req, res) => {
           ? parseFloat(parseFloat(outras_fontes).toFixed(2))
           : undefined,
       },
-      select: {
-        id: true,
-        salario: true,
-        outras_fontes: true,
-      },
     });
 
     res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
