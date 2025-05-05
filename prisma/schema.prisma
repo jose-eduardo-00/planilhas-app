@@ -8,16 +8,18 @@ datasource db {
 }
 
 model User {
-  id            String  @id @default(uuid())
+  id            String   @id @default(uuid())
   name          String
-  email         String  @unique
+  email         String   @unique
   senha         String
-  verify        Boolean @default(false)
+  verify        Boolean  @default(false)
   avatar        String
-  renda_mensal  Decimal @db.Decimal(10, 2)
-  salario       Decimal @db.Decimal(10, 2)
-  outras_fontes Decimal @db.Decimal(10, 2)
+  renda_mensal  Decimal  @db.Decimal(10, 2)
+  salario       Decimal  @db.Decimal(10, 2)
+  outras_fontes Decimal  @db.Decimal(10, 2)
   expoToken     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   Code     Code[]
   Auth     Auth[]
@@ -29,36 +31,45 @@ model Code {
   userId    String   @unique
   code      String
   expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Auth {
-  id     String @id @default(uuid())
-  userId String @unique
-  token  String @db.Text
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  token     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Planilha {
-  id     String   @id @default(uuid())
-  nome   String
-  tipo   String
-  data   DateTime
-  valor  Decimal  @db.Decimal(10, 2)
-  userId String
-  user   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  linhas LinhaPlanilha[]
+  id        String          @id @default(uuid())
+  nome      String
+  descricao String?
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  linhas    LinhaPlanilha[]
 
   @@index([userId])
 }
 
 model LinhaPlanilha {
   id         String   @id @default(uuid())
-  descricao  String
+  nome       String
+  tipo       String
+  data       DateTime
+  valor      Decimal  @db.Decimal(10, 2)
   planilhaId String
   planilha   Planilha @relation(fields: [planilhaId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([planilhaId])
 }

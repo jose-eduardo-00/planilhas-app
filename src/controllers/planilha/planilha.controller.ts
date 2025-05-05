@@ -3,17 +3,14 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export const createPlanilha: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// CREATE PLANILHA
+export const createPlanilha: RequestHandler = async (req, res) => {
   try {
-    const { nome, tipo, data, userId, linhas } = req.body;
+    const { nome, userId } = req.body;
 
-    if (!nome || !tipo || !data || !userId || !Array.isArray(linhas)) {
+    if (!nome || !userId) {
       res.status(400).json({
-        error:
-          "Todos os campos são obrigatórios, incluindo 'linhas' como um array.",
+        error: "Todos os campos são obrigatórios.",
       });
       return;
     }
@@ -21,18 +18,7 @@ export const createPlanilha: RequestHandler = async (
     const novaPlanilha = await prisma.planilha.create({
       data: {
         nome,
-        tipo,
-        data: new Date(data),
         userId,
-        valor: 0,
-        linhas: {
-          create: linhas.map((linha: { descricao: string }) => ({
-            descricao: linha.descricao,
-          })),
-        },
-      },
-      include: {
-        linhas: true,
       },
     });
 
@@ -43,7 +29,39 @@ export const createPlanilha: RequestHandler = async (
   }
 };
 
-export const getPlanilhasByUser = async (req: Request, res: Response) => {
+// GET PLANILHAS POR ID
+export const getPlanilhaById: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const planilha = await prisma.planilha.findUnique({
+      where: { id },
+      include: { linhas: true },
+    });
+
+    res.status(200).json(planilha);
+  } catch (error) {
+    console.error("Erro ao buscar planilha:", error);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+};
+
+// GET PLANILHAS
+export const getPlanilhas: RequestHandler = async (req, res) => {
+  try {
+    const planilha = await prisma.planilha.findMany({
+      include: { linhas: true },
+    });
+
+    res.status(200).json(planilha);
+  } catch (error) {
+    console.error("Erro ao buscar planilha:", error);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+};
+
+// GET PLANILHAS POR USUÁRIO
+export const getPlanilhasByUser: RequestHandler = async (req, res) => {
   try {
     const { userId } = req.params;
 
@@ -59,22 +77,25 @@ export const getPlanilhasByUser = async (req: Request, res: Response) => {
   }
 };
 
-export const addLinhaToPlanilha: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// ADICIONAR LINHA À PLANILHA
+export const addLinhaToPlanilha: RequestHandler = async (req, res) => {
   try {
     const { planilhaId } = req.params;
-    const { descricao } = req.body;
+    const { nome, tipo, data, valor } = req.body;
 
-    if (!descricao) {
-      res.status(400).json({ error: "O campo 'descricao' é obrigatório." });
+    if (!nome || !tipo || !data || valor === undefined) {
+      res.status(400).json({
+        error: "Os campos 'nome', 'tipo', 'data' e 'valor' são obrigatórios.",
+      });
       return;
     }
 
     const novaLinha = await prisma.linhaPlanilha.create({
       data: {
-        descricao,
+        nome,
+        tipo,
+        data: new Date(data),
+        valor,
         planilhaId,
       },
     });
@@ -86,18 +107,16 @@ export const addLinhaToPlanilha: RequestHandler = async (
   }
 };
 
-export const updatePlanilha: RequestHandler = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
+// UPDATE PLANILHA (com substituição de linhas)
+export const updatePlanilha: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, tipo, data, linhas } = req.body;
+    const { nome, descricao, linhas } = req.body;
 
-    if (!nome || !tipo || !data || !Array.isArray(linhas)) {
+    if (!nome || !descricao || !Array.isArray(linhas)) {
       res.status(400).json({
         error:
-          "Todos os campos são obrigatórios, incluindo 'linhas' como um array.",
+          "Todos os campos são obrigatórios, incluindo 'linhas' como array.",
       });
       return;
     }
@@ -106,18 +125,25 @@ export const updatePlanilha: RequestHandler = async (
       where: { id },
       data: {
         nome,
-        tipo,
-        data: new Date(data),
+        descricao,
         linhas: {
-          deleteMany: {},
-          create: linhas.map((linha: { descricao: string }) => ({
-            descricao: linha.descricao,
-          })),
+          deleteMany: {}, // Remove todas as linhas antigas
+          create: linhas.map(
+            (linha: {
+              nome: string;
+              tipo: string;
+              data: string;
+              valor: number;
+            }) => ({
+              nome: linha.nome,
+              tipo: linha.tipo,
+              data: new Date(linha.data),
+              valor: linha.valor,
+            })
+          ),
         },
       },
-      include: {
-        linhas: true,
-      },
+      include: { linhas: true },
     });
 
     res.status(200).json(planilhaAtualizada);
@@ -127,7 +153,8 @@ export const updatePlanilha: RequestHandler = async (
   }
 };
 
-export const deletePlanilha = async (req: Request, res: Response) => {
+// DELETE PLANILHA
+export const deletePlanilha: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
 
