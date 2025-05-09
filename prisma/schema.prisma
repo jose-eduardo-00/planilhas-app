@@ -48,14 +48,15 @@ model Auth {
 }
 
 model Planilha {
-  id        String          @id @default(uuid())
-  nome      String
-  descricao String?
-  userId    String
-  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
-  linhas    LinhaPlanilha[]
+  id           String          @id @default(uuid())
+  nome         String
+  descricao    String?
+  userId       String
+  renda_mensal Decimal         @db.Decimal(10, 2)
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  linhas       LinhaPlanilha[]
 
   @@index([userId])
 }

@@ -77,21 +77,39 @@ export const updateData: RequestHandler = async (req, res) => {
     const { id } = req.params;
     const { salario, outras_fontes } = req.body;
 
+    // Buscar usuário atual para pegar os valores existentes
+    const existingUser = await prisma.user.findUnique({ where: { id } });
+
+    if (!existingUser) {
+      res.status(404).json({ error: "Usuário não encontrado." });
+      return;
+    }
+
+    // Pega os valores informados ou usa os existentes convertendo de Decimal para number
+    const salarioFinal =
+      salario !== undefined
+        ? parseFloat(parseFloat(salario).toFixed(2))
+        : existingUser.salario?.toNumber() || 0;
+
+    const outrasFontesFinal =
+      outras_fontes !== undefined
+        ? parseFloat(parseFloat(outras_fontes).toFixed(2))
+        : existingUser.outras_fontes?.toNumber() || 0;
+
+    const renda = parseFloat((salarioFinal + outrasFontesFinal).toFixed(2));
+
     const updatedUser = await prisma.user.update({
       where: { id },
       data: {
-        salario: salario
-          ? parseFloat(parseFloat(salario).toFixed(2))
-          : undefined,
-        outras_fontes: outras_fontes
-          ? parseFloat(parseFloat(outras_fontes).toFixed(2))
-          : undefined,
+        salario: salario !== undefined ? salarioFinal : undefined,
+        outras_fontes:
+          outras_fontes !== undefined ? outrasFontesFinal : undefined,
+        renda_mensal: renda,
       },
     });
 
     res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
   } catch (error) {
-    console.error("Erro ao atualizar salário e outras fontes:", error);
     res.status(500).json({
       error: MESSAGES.USER.ERROR,
       details: error instanceof Error ? error.message : error,

@@ -15,10 +15,20 @@ export const createPlanilha: RequestHandler = async (req, res) => {
       return;
     }
 
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user) {
+      res.status(404).json({
+        error: "Usuário não encontrado.",
+      });
+      return;
+    }
+
     const novaPlanilha = await prisma.planilha.create({
       data: {
         nome,
         userId,
+        renda_mensal: user?.renda_mensal,
       },
     });
 
@@ -39,7 +49,27 @@ export const getPlanilhaById: RequestHandler = async (req, res) => {
       include: { linhas: true },
     });
 
-    res.status(200).json(planilha);
+    if (!planilha) {
+      res.status(400).json({
+        error: "Planilha não encontrada.",
+      });
+      return;
+    }
+
+    let valorTotal = 0;
+
+    planilha.linhas.forEach((item) => {
+      valorTotal += item.valor.toNumber();
+    });
+
+    const valorTotalFormatado = Number(valorTotal.toFixed(2));
+
+    await prisma.planilha.update({
+      where: { id },
+      data: { nome: planilha.nome },
+    });
+
+    res.status(200).json({ planilha, valorTotalFormatado });
   } catch (error) {
     console.error("Erro ao buscar planilha:", error);
     res.status(500).json({ error: "Erro interno do servidor." });
