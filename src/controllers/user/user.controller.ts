@@ -6,8 +6,15 @@ import bcrypt from "bcryptjs";
 import { MESSAGES } from "../../utils/messages";
 import { enviarEmail } from "../../helpers/emailHelper";
 import { generateVerificationCode } from "../../helpers/generateCodeHelper";
+import jwt from "jsonwebtoken";
 
 const prisma = new PrismaClient();
+const JWT_SECRET = process.env.JWT_SECRET || "secrettoken";
+const JWT_EXPIRATION = "6h";
+
+const generateToken = (userId: string): string => {
+  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+};
 
 export const createUser: RequestHandler = async (
   req: Request,
@@ -170,7 +177,7 @@ export const getUserById: RequestHandler = async (req, res) => {
 export const updateUser: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, email, renda_mensal } = req.body;
+    const { name, email } = req.body;
 
     const avatarPath = req.file ? `avatar/${req.file.filename}` : undefined;
 
@@ -179,21 +186,23 @@ export const updateUser: RequestHandler = async (req, res) => {
       data: {
         name,
         email,
-        avatar: avatarPath || undefined,
-        renda_mensal: renda_mensal
-          ? parseFloat(parseFloat(renda_mensal).toFixed(2))
-          : undefined,
+        avatar: avatarPath,
       },
       select: {
         id: true,
         name: true,
         email: true,
         avatar: true,
-        renda_mensal: true,
       },
     });
 
-    res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
+    const token = generateToken(updatedUser.id);
+
+    res.status(200).json({
+      message: MESSAGES.USER.UPDATED,
+      user: updatedUser,
+      token: token,
+    });
   } catch (error) {
     console.error("Erro ao atualizar usuário:", error);
     res.status(500).json({
