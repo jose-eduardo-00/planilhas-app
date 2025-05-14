@@ -147,3 +147,33 @@ export const verifyCode: RequestHandler = async (
       .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
   }
 };
+
+export const checkToken: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      res.status(400).json({ error: MESSAGES.AUTH.TOKEN_NOT_FOUND });
+      return;
+    }
+
+    const authProfile = await prisma.auth.findFirst({ where: { token } });
+
+    if (!authProfile) {
+      res.status(404).json({ error: MESSAGES.AUTH.TOKEN_NOT_FOUND });
+      return;
+    }
+
+    res.status(200).json({
+      message: MESSAGES.AUTH.LOGIN_SUCCESS,
+    });
+  } catch (error) {
+    console.error("Erro no login:", error);
+    res
+      .status(500)
+      .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
+  }
+};
