@@ -8,8 +8,8 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "secrettoken";
 const JWT_EXPIRATION = "6h";
 
-const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+const generateToken = (user: any): string => {
+  return jwt.sign({ user }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
 };
 
 export const loginUser: RequestHandler = async (
@@ -38,7 +38,7 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
-    const token = generateToken(user.id);
+    const token = generateToken(user);
 
     await prisma.auth.upsert({
       where: { userId: user.id },
@@ -67,6 +67,7 @@ export const logoutUser: RequestHandler = async (
 ) => {
   try {
     const { token, userId } = req.body;
+    console.log(token, userId);
 
     if (!token || !userId) {
       res.status(400).json({ error: MESSAGES.ERROR.INVALID_REQUEST });
@@ -82,8 +83,11 @@ export const logoutUser: RequestHandler = async (
       return;
     }
 
-    await prisma.auth.delete({
+    await prisma.auth.update({
       where: { id: authRecord.id },
+      data: {
+        token: "",
+      },
     });
 
     res.status(200).json({ message: MESSAGES.AUTH.LOGOUT_SUCCESS });

@@ -12,8 +12,8 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "secrettoken";
 const JWT_EXPIRATION = "6h";
 
-const generateToken = (userId: string): string => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
+const generateToken = (user: any): string => {
+  return jwt.sign({ user }, JWT_SECRET, { expiresIn: JWT_EXPIRATION });
 };
 
 export const createUser: RequestHandler = async (
@@ -115,7 +115,15 @@ export const updateData: RequestHandler = async (req, res) => {
       },
     });
 
-    res.status(200).json({ message: MESSAGES.USER.UPDATED, user: updatedUser });
+    const token = generateToken(updatedUser);
+
+    res
+      .status(200)
+      .json({
+        message: MESSAGES.USER.UPDATED,
+        user: updatedUser,
+        token: token,
+      });
   } catch (error) {
     res.status(500).json({
       error: MESSAGES.USER.ERROR,
@@ -196,7 +204,7 @@ export const updateUser: RequestHandler = async (req, res) => {
       },
     });
 
-    const token = generateToken(updatedUser.id);
+    const token = generateToken(updatedUser);
 
     res.status(200).json({
       message: MESSAGES.USER.UPDATED,
