@@ -188,11 +188,60 @@ export const deletePlanilha: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
 
-    await prisma.planilha.delete({
+    const planilha = await prisma.planilha.findUnique({ where: { id } });
+
+    if (!planilha) {
+      res.status(404).json({ error: "Planilha não encontrada." });
+      return;
+    }
+
+    await prisma.$transaction([
+      prisma.linhaPlanilha.deleteMany({ where: { planilhaId: id } }),
+      prisma.planilha.delete({ where: { id } }),
+    ]);
+
+    res.status(200).json({ message: "Planilha deletada com sucesso." });
+  } catch (error) {
+    console.error("Erro ao deletar planilha:", error);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+};
+
+// UPDATE LINHAS DA PLANILHA
+export const updateLinhaPlanilha: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { data, tipo, nome, valor } = req.body;
+
+    const linhaPlanilhaAtualizada = await prisma.linhaPlanilha.update({
+      where: { id },
+      data: {
+        nome,
+        tipo,
+        data: new Date(data),
+        valor,
+      },
+    });
+
+    res.status(200).json(linhaPlanilhaAtualizada);
+  } catch (error) {
+    console.error("Erro ao atualizar planilha:", error);
+    res.status(500).json({ error: "Erro interno do servidor." });
+  }
+};
+
+// DELETE LINHA PLANILHA
+export const deleteLinhaPlanilha: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.linhaPlanilha.delete({
       where: { id },
     });
 
-    res.status(200).json({ message: "Planilha deletada com sucesso." });
+    res
+      .status(200)
+      .json({ message: "Linha da Planilha deletada com sucesso." });
   } catch (error) {
     console.error("Erro ao deletar planilha:", error);
     res.status(500).json({ error: "Erro interno do servidor." });
