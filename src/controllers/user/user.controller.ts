@@ -21,7 +21,7 @@ export const createUser: RequestHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, email, senha, renda_mensal, expoToken } = req.body;
+    const { name, email, senha, renda_mensal, expoToken, nivel } = req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -47,6 +47,7 @@ export const createUser: RequestHandler = async (
         outras_fontes: 0.0,
         verify: false,
         expoToken: expoToken,
+        nivel: nivel,
       },
     });
 
@@ -117,13 +118,11 @@ export const updateData: RequestHandler = async (req, res) => {
 
     const token = generateToken(updatedUser);
 
-    res
-      .status(200)
-      .json({
-        message: MESSAGES.USER.UPDATED,
-        user: updatedUser,
-        token: token,
-      });
+    res.status(200).json({
+      message: MESSAGES.USER.UPDATED,
+      user: updatedUser,
+      token: token,
+    });
   } catch (error) {
     res.status(500).json({
       error: MESSAGES.USER.ERROR,

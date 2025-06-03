@@ -13,6 +13,7 @@ model User {
   email         String   @unique
   senha         String
   verify        Boolean  @default(false)
+  nivel         Int      @default(2)
   avatar        String
   renda_mensal  Decimal  @db.Decimal(10, 2)
   salario       Decimal  @db.Decimal(10, 2)
