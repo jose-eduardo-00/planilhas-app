@@ -31,6 +31,11 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
+    if (!user.status) {
+      res.status(403).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
+      return;
+    }
+
     const isPasswordValid = await bcrypt.compare(senha, user.senha);
 
     if (!isPasswordValid) {
@@ -164,6 +169,22 @@ export const checkToken: RequestHandler = async (
 
     if (!authProfile) {
       res.status(404).json({ error: MESSAGES.AUTH.TOKEN_NOT_FOUND });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: authProfile.userId },
+    });
+
+    if (!user) {
+      res.status(404).json({ error: MESSAGES.USER.NOT_FOUND });
+      return;
+    }
+
+    console.log(user.status);
+
+    if (!user.status) {
+      res.status(403).json({ error: MESSAGES.USER.ERROR });
       return;
     }
 
