@@ -63,7 +63,7 @@ export const createUser: RequestHandler = async (
       },
     });
 
-    await enviarEmail(email, "Código de Confirmação", name, newCode.code);
+    await enviarEmail(email, "Código de Confirmação", newCode.code, name);
 
     const { senha: _, ...userWithoutPassword } = newUser;
 
