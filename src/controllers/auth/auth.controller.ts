@@ -31,15 +31,20 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
+    const isPasswordValid = await bcrypt.compare(senha, user.senha);
+
+    if (!isPasswordValid) {
+      res.status(402).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
+      return;
+    }
+
     if (!user.status) {
       res.status(403).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
       return;
     }
 
-    const isPasswordValid = await bcrypt.compare(senha, user.senha);
-
-    if (!isPasswordValid) {
-      res.status(401).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
+    if (!user.verify) {
+      res.status(405).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
       return;
     }
 
