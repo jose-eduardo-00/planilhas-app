@@ -3,6 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { MESSAGES } from "../../utils/messages";
+import { generateVerificationCode } from "../../helpers/generateCodeHelper";
+import { enviarEmail } from "../../helpers/emailHelper";
 
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "secrettoken";
@@ -31,24 +33,24 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
+    if (!user.status) {
+      res.status(403).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
+      return;
+    }
+
+    const token = generateToken(user);
+
+    if (!user.verify) {
+      res.status(405).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS, token });
+      return;
+    }
+
     const isPasswordValid = await bcrypt.compare(senha, user.senha);
 
     if (!isPasswordValid) {
       res.status(402).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
       return;
     }
-
-    if (!user.status) {
-      res.status(403).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
-      return;
-    }
-
-    if (!user.verify) {
-      res.status(405).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
-      return;
-    }
-
-    const token = generateToken(user);
 
     await prisma.auth.upsert({
       where: { userId: user.id },
@@ -192,6 +194,50 @@ export const checkToken: RequestHandler = async (
       res.status(403).json({ error: MESSAGES.USER.ERROR });
       return;
     }
+
+    res.status(200).json({
+      message: MESSAGES.AUTH.LOGIN_SUCCESS,
+    });
+  } catch (error) {
+    console.error("Erro no login:", error);
+    res
+      .status(500)
+      .json({ error: MESSAGES.ERROR.INTERNAL_SERVER, details: error });
+  }
+};
+
+export const sendEmail: RequestHandler = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      res.status(400).json({ error: MESSAGES.ERROR.INVALID_REQUEST });
+      return;
+    }
+
+    const user = await prisma.user.findFirst({ where: { email } });
+
+    if (!user) {
+      res.status(401).json({ error: MESSAGES.AUTH.INVALID_CREDENTIALS });
+      return;
+    }
+
+    const verificationCode = generateVerificationCode();
+
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    const newCode = await prisma.code.create({
+      data: {
+        userId: user.id,
+        code: verificationCode,
+        expiresAt: expiresAt,
+      },
+    });
+
+    await enviarEmail(email, "Código de Confirmação", newCode.code, user.name);
 
     res.status(200).json({
       message: MESSAGES.AUTH.LOGIN_SUCCESS,
