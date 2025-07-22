@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import app from "./app";
+import "./utils/scheduler";
 
 const prisma = new PrismaClient();
 
