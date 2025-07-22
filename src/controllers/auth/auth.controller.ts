@@ -225,6 +225,28 @@ export const sendEmail: RequestHandler = async (
       return;
     }
 
+    const existingCode = await prisma.code.findUnique({
+      where: { userId: user.id },
+    });
+
+    if (existingCode) {
+      const now = new Date();
+      const createdAt = existingCode.expiresAt.getTime() - 5 * 60 * 1000;
+      const secondsSinceCreation = (now.getTime() - createdAt) / 1000;
+
+      if (secondsSinceCreation < 30) {
+        res.status(429).json({
+          error:
+            "Aguarde ao menos 30 segundos antes de solicitar um novo código.",
+        });
+        return;
+      }
+
+      await prisma.code.delete({
+        where: { userId: user.id },
+      });
+    }
+
     const verificationCode = generateVerificationCode();
 
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
@@ -241,6 +263,7 @@ export const sendEmail: RequestHandler = async (
 
     res.status(200).json({
       message: MESSAGES.AUTH.LOGIN_SUCCESS,
+      userId: user.id,
     });
   } catch (error) {
     console.error("Erro no login:", error);
