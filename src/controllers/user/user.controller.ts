@@ -284,13 +284,23 @@ export const updatePassword: RequestHandler = async (req, res) => {
     const { id } = req.params;
     const { senha } = req.body;
 
+    if (!senha) {
+      res.status(400).json({ error: MESSAGES.ERROR.INVALID_REQUEST });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    if (!user) {
+      res.status(404).json({ error: MESSAGES.USER.NOT_FOUND });
+      return;
+    }
+
     const hashedPassword = await bcrypt.hash(senha, 10);
 
-    const updatedUser = await prisma.user.update({
+    await prisma.user.update({
       where: { id },
-      data: {
-        senha: hashedPassword,
-      },
+      data: { senha: hashedPassword },
       select: {
         id: true,
         senha: true,
