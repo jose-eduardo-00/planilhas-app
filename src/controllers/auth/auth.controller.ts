@@ -52,10 +52,16 @@ export const loginUser: RequestHandler = async (
       return;
     }
 
+    const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24);
+
     await prisma.auth.upsert({
       where: { userId: user.id },
-      update: { token },
-      create: { userId: user.id, token },
+      update: { token, expiresAt },
+      create: {
+        userId: user.id,
+        token,
+        expiresAt,
+      },
     });
 
     const { senha: _, ...userWithoutPassword } = user;
@@ -98,7 +104,7 @@ export const logoutUser: RequestHandler = async (
     await prisma.auth.update({
       where: { id: authRecord.id },
       data: {
-        token: "",
+        token: null,
       },
     });
 
@@ -188,10 +194,18 @@ export const checkToken: RequestHandler = async (
       return;
     }
 
-    console.log(user.status);
-
     if (!user.status) {
       res.status(403).json({ error: MESSAGES.USER.ERROR });
+      return;
+    }
+
+    if (authProfile.expiresAt < new Date()) {
+      await prisma.auth.update({
+        where: { id: authProfile.id },
+        data: { token: null },
+      });
+
+      res.status(401).json({ error: "Token expirado. Faça login novamente." });
       return;
     }
 
