@@ -85,7 +85,6 @@ export const updateData: RequestHandler = async (req, res) => {
     const { id } = req.params;
     const { salario, outras_fontes } = req.body;
 
-    // Buscar usuário atual para pegar os valores existentes
     const existingUser = await prisma.user.findUnique({ where: { id } });
 
     if (!existingUser) {
@@ -93,7 +92,6 @@ export const updateData: RequestHandler = async (req, res) => {
       return;
     }
 
-    // Pega os valores informados ou usa os existentes convertendo de Decimal para number
     const salarioFinal =
       salario !== undefined
         ? parseFloat(parseFloat(salario).toFixed(2))
@@ -116,7 +114,14 @@ export const updateData: RequestHandler = async (req, res) => {
       },
     });
 
-    const token = generateToken(updatedUser);
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    const token = generateToken(user);
+
+    await prisma.auth.update({
+      where: { userId: updatedUser.id },
+      data: { token },
+    });
 
     res.status(200).json({
       message: MESSAGES.USER.UPDATED,
@@ -203,11 +208,18 @@ export const updateUser: RequestHandler = async (req, res) => {
       },
     });
 
-    const token = generateToken(updatedUser);
+    const user = await prisma.user.findUnique({ where: { id } });
+
+    const token = generateToken(user);
+
+    await prisma.auth.update({
+      where: { userId: updatedUser.id },
+      data: { token },
+    });
 
     res.status(200).json({
       message: MESSAGES.USER.UPDATED,
-      user: updatedUser,
+      user: user,
       token: token,
     });
   } catch (error) {
