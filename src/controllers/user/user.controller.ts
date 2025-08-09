@@ -138,15 +138,7 @@ export const updateData: RequestHandler = async (req, res) => {
 
 export const getUsers: RequestHandler = async (_req, res) => {
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        avatar: true,
-        renda_mensal: true,
-      },
-    });
+    const users = await prisma.user.findMany({});
 
     res.status(200).json({
       message: MESSAGES.USER.FETCHED,
