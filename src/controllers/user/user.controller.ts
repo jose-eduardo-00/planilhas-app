@@ -21,7 +21,8 @@ export const createUser: RequestHandler = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name, email, senha, renda_mensal, expoToken, nivel } = req.body;
+    const { name, email, senha, renda_mensal, expoToken, nivel, origin } =
+      req.body;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
@@ -48,6 +49,7 @@ export const createUser: RequestHandler = async (
         verify: false,
         expoToken: expoToken,
         nivel: nivel,
+        origin: origin,
       },
     });
 

@@ -19,9 +19,9 @@ export const loginUser: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const { email, senha } = req.body;
+    const { email, senha, last_access } = req.body;
 
-    if (!email || !senha) {
+    if (!email || !senha || !last_access) {
       res.status(400).json({ error: MESSAGES.ERROR.INVALID_REQUEST });
       return;
     }
@@ -56,11 +56,12 @@ export const loginUser: RequestHandler = async (
 
     await prisma.auth.upsert({
       where: { userId: user.id },
-      update: { token, expiresAt },
+      update: { token, expiresAt, last_access },
       create: {
         userId: user.id,
         token,
         expiresAt,
+        last_access,
       },
     });
 
@@ -171,9 +172,9 @@ export const checkToken: RequestHandler = async (
   res: Response
 ) => {
   try {
-    const { token } = req.body;
+    const { token, last_access } = req.body;
 
-    if (!token) {
+    if (!token || !last_access) {
       res.status(400).json({ error: MESSAGES.AUTH.TOKEN_NOT_FOUND });
       return;
     }
@@ -208,6 +209,11 @@ export const checkToken: RequestHandler = async (
       res.status(401).json({ error: "Token expirado. Faça login novamente." });
       return;
     }
+
+    await prisma.auth.update({
+      where: { id: authProfile.id },
+      data: { last_access: last_access },
+    });
 
     res.status(200).json({
       message: MESSAGES.AUTH.LOGIN_SUCCESS,
