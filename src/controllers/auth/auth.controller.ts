@@ -86,7 +86,6 @@ export const logoutUser: RequestHandler = async (
 ) => {
   try {
     const { token, userId } = req.body;
-    console.log(token, userId);
 
     if (!token || !userId) {
       res.status(400).json({ error: MESSAGES.ERROR.INVALID_REQUEST });

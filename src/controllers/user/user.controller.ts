@@ -322,3 +322,31 @@ export const updatePassword: RequestHandler = async (req, res) => {
     });
   }
 };
+
+export const updateStatusUser: RequestHandler = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    await prisma.user.update({
+      where: { id },
+      data: {
+        status,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    res.status(200).json({
+      message: MESSAGES.USER.UPDATED,
+    });
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+    res.status(500).json({
+      error: MESSAGES.USER.ERROR,
+      details: error instanceof Error ? error.message : error,
+    });
+  }
+};

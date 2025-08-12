@@ -8,6 +8,7 @@ import {
   resendPassword,
   updateData,
   updatePassword,
+  updateStatusUser,
 } from "../../controllers/user/user.controller";
 import { uploadAvatar } from "../../helpers/img-uploader";
 
@@ -18,6 +19,7 @@ router.get("/", getUsers);
 router.get("/:id", getUserById);
 router.put("/edit/:id", uploadAvatar.single("avatar"), updateUser);
 router.put("/update-data/:id", updateData);
+router.put("/update-status/:id", updateStatusUser);
 router.delete("/delete/:id", deleteUser);
 router.post("/resend-password", resendPassword);
 router.put("/update-password/:id", updatePassword);
