@@ -88,6 +88,7 @@ model Notificacao {
   texto     String
   userId    String
   validade  DateTime?
+  platform  Int       @default(3) // 1: Web, 2: Mobile, 3: Ambos 
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
