@@ -5,9 +5,9 @@ const prisma = new PrismaClient();
 
 export const createNotificacao: RequestHandler = async (req, res) => {
   try {
-    const { nome, texto, userId, validade } = req.body;
+    const { nome, texto, userId, validade, platform } = req.body;
 
-    if (!nome || !texto || !userId) {
+    if (!nome || !texto || !userId || !platform || !validade) {
       res.status(400).json({
         error: "Todos os campos são obrigatórios.",
       });
@@ -23,12 +23,16 @@ export const createNotificacao: RequestHandler = async (req, res) => {
       return;
     }
 
+    const data = new Date(validade);
+    const plataforma = Number(platform);
+
     const novaNotificacao = await prisma.notificacao.create({
       data: {
         nome,
         texto,
         userId,
-        validade,
+        validade: data,
+        platform: plataforma,
       },
     });
 
