@@ -207,7 +207,7 @@ export const deletePlanilha: RequestHandler = async (req, res) => {
   }
 };
 
-// UPDATE LINHAS DA PLANILHA
+// UPDATE LINHAS DA PLANILHa
 export const updateLinhaPlanilha: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
