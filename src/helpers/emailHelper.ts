@@ -1,8 +1,16 @@
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import fs from "fs";
 import path from "path";
 import * as dotenv from "dotenv";
 dotenv.config();
+
+// Valida se a chave da API do Resend existe
+if (!process.env.RESEND_API_KEY) {
+  throw new Error("RESEND_API_KEY não definida no .env");
+}
+
+// Inicializa o cliente do Resend uma única vez
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const enviarEmail = async (
   to: string,
@@ -10,54 +18,34 @@ export const enviarEmail = async (
   code: string,
   nome: string
 ) => {
-  if (
-    !process.env.EMAIL_USER ||
-    !process.env.EMAIL_PASS ||
-    !process.env.EMAIL_FROM
-  ) {
-    throw new Error(
-      "EMAIL_USER, EMAIL_PASS ou EMAIL_FROM não definidos no .env"
-    );
-  }
-
-  // Caminho do template
+  // O caminho e a leitura do template continuam iguais
   const templatePath = path.resolve(
     __dirname,
     "../../template/code",
     "index.html"
   );
-
-  // Lê o conteúdo do template
   const template = fs.readFileSync(templatePath, "utf-8");
-
-  // Substituição de variáveis
   const htmlContent = template
     .replace(/{{nome}}/g, nome)
     .replace(/{{codigo_confirmacao}}/g, code);
 
-  // Configura o transporte via Gmail
-  const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS, // precisa ser uma senha de app!
-    },
-  });
-
-  // Define o e-mail
-  const mailOptions = {
-    from: process.env.EMAIL_FROM,
-    to,
-    subject,
-    html: htmlContent,
-  };
-
-  // Envia
   try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log("E-mail enviado com sucesso:", info.response);
+    // A mágica acontece aqui: uma única chamada para o Resend
+    const { data, error } = await resend.emails.send({
+      from: "Nome do seu App <voce@seudominioverificado.com>", // IMPORTANTE: Use o domínio que você verificou no Resend
+      to: [to],
+      subject: subject,
+      html: htmlContent,
+    });
+
+    if (error) {
+      console.error("Erro ao enviar e-mail pelo Resend:", error);
+      throw new Error("Falha ao enviar o e-mail.");
+    }
+
+    console.log("E-mail enviado com sucesso:", data);
   } catch (error) {
-    console.error("Erro ao enviar e-mail:", error);
+    console.error("Erro inesperado ao enviar e-mail:", error);
     throw new Error("Falha ao enviar o e-mail.");
   }
 };
