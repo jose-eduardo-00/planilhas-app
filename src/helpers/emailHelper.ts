@@ -32,7 +32,7 @@ export const enviarEmail = async (
   try {
     // A mágica acontece aqui: uma única chamada para o Resend
     const { data, error } = await resend.emails.send({
-      from: "Nome do seu App <voce@seudominioverificado.com>", // IMPORTANTE: Use o domínio que você verificou no Resend
+      from: "Planilhas <updates.planilha.fun>", // IMPORTANTE: Use o domínio que você verificou no Resend
       to: [to],
       subject: subject,
       html: htmlContent,
