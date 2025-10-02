@@ -141,12 +141,11 @@ export const addLinhaToPlanilha: RequestHandler = async (req, res) => {
 export const updatePlanilha: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nome, descricao, linhas } = req.body;
+    const { nome, descricao } = req.body;
 
-    if (!nome || !descricao || !Array.isArray(linhas)) {
+    if (!id) {
       res.status(400).json({
-        error:
-          "Todos os campos são obrigatórios, incluindo 'linhas' como array.",
+        error: "O campo 'id' é obrigatório.",
       });
       return;
     }
@@ -156,22 +155,6 @@ export const updatePlanilha: RequestHandler = async (req, res) => {
       data: {
         nome,
         descricao,
-        linhas: {
-          deleteMany: {}, // Remove todas as linhas antigas
-          create: linhas.map(
-            (linha: {
-              nome: string;
-              tipo: string;
-              data: string;
-              valor: number;
-            }) => ({
-              nome: linha.nome,
-              tipo: linha.tipo,
-              data: new Date(linha.data),
-              valor: linha.valor,
-            })
-          ),
-        },
       },
       include: { linhas: true },
     });

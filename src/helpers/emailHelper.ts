@@ -4,12 +4,10 @@ import path from "path";
 import * as dotenv from "dotenv";
 dotenv.config();
 
-// Valida se a chave da API do Resend existe
 if (!process.env.RESEND_API_KEY) {
   throw new Error("RESEND_API_KEY não definida no .env");
 }
 
-// Inicializa o cliente do Resend uma única vez
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const enviarEmail = async (
@@ -18,7 +16,6 @@ export const enviarEmail = async (
   code: string,
   nome: string
 ) => {
-  // O caminho e a leitura do template continuam iguais
   const templatePath = path.resolve(
     __dirname,
     "../../template/code",
@@ -30,9 +27,8 @@ export const enviarEmail = async (
     .replace(/{{codigo_confirmacao}}/g, code);
 
   try {
-    // A mágica acontece aqui: uma única chamada para o Resend
     const { data, error } = await resend.emails.send({
-      from: "Planilhas <contato@updates.planilha.fun>", // IMPORTANTE: Use o domínio que você verificou no Resend
+      from: "Planilhas <contato@updates.planilha.fun>",
       to: [to],
       subject: subject,
       html: htmlContent,
