@@ -127,6 +127,7 @@ export const addLinhaToPlanilha: RequestHandler = async (req, res) => {
         data: new Date(data),
         valor,
         planilhaId,
+        color: "#ffffff",
       },
     });
 
@@ -194,7 +195,7 @@ export const deletePlanilha: RequestHandler = async (req, res) => {
 export const updateLinhaPlanilha: RequestHandler = async (req, res) => {
   try {
     const { id } = req.params;
-    const { data, tipo, nome, valor } = req.body;
+    const { data, tipo, nome, valor, color } = req.body;
 
     const linhaPlanilhaAtualizada = await prisma.linhaPlanilha.update({
       where: { id },
@@ -203,6 +204,7 @@ export const updateLinhaPlanilha: RequestHandler = async (req, res) => {
         tipo,
         data: new Date(data),
         valor,
+        color,
       },
     });
 
