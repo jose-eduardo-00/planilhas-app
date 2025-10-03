@@ -74,6 +74,7 @@ model LinhaPlanilha {
   tipo       String
   data       DateTime
   valor      Decimal  @db.Decimal(10, 2)
+  color      String   @default("#ffffff")
   planilhaId String
   planilha   Planilha @relation(fields: [planilhaId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
